@@ -10,11 +10,13 @@ let ladycap: User = new User('Lady Capulet', require('images/avatars/female-avat
 let echo: User    = new User('Echo Bot', require('images/avatars/male-avatar-1.png'));
 let rev: User     = new User('Reverse Bot', require('images/avatars/female-avatar-4.png'));
 let wait: User    = new User('Waiting Bot', require('images/avatars/male-avatar-2.png'));
+let capslock:User = new User('Caps Lock Bot',require('images/avatars/male-avatar-3.png'));
 
 let tLadycap: Thread = new Thread('tLadycap', ladycap.name, ladycap.avatarSrc);
 let tEcho: Thread    = new Thread('tEcho', echo.name, echo.avatarSrc);
 let tRev: Thread     = new Thread('tRev', rev.name, rev.avatarSrc);
 let tWait: Thread    = new Thread('tWait', wait.name, wait.avatarSrc);
+let tcapslock:Thread = new Thread('tcapslock',capslock.name,capslock.avatarSrc);
 
 let initialMessages: Array<Message> = [
   new Message({
@@ -47,6 +49,12 @@ let initialMessages: Array<Message> = [
     text: `I\'ll wait however many seconds you send to me before responding. Try sending '3'`,
     thread: tWait
   }),
+    new Message({
+        author:capslock,
+        sentAt:moment().subtract(3, 'minutes').toDate(),
+        text:`I\'ll caps lock whatever you send me`,
+        thread:tcapslock
+    })
 ];
 
 export class ChatExampleData {
@@ -97,6 +105,19 @@ export class ChatExampleData {
       },
                 null);
 
+      //caps lock bot-Iulia's masterpiece
+      messagesService.messagesForThreadUser(tcapslock, capslock)
+          .forEach( (message: Message): void => {
+                  messagesService.addMessage(
+                      new Message({
+                          author: capslock,
+                          text: message.text.toUpperCase(),
+                          thread: tcapslock
+                      })
+                  );
+              },
+              null);
+
     // waiting bot
     messagesService.messagesForThreadUser(tWait, wait)
       .forEach( (message: Message): void => {
@@ -110,6 +131,8 @@ export class ChatExampleData {
         } else {
           reply = `I waited ${waitTime} seconds to send you this.`;
         }
+
+
 
         setTimeout(
           () => {
