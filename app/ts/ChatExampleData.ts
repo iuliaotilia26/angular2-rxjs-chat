@@ -1,8 +1,9 @@
 /* tslint:disable:max-line-length */
 import {User, Thread, Message} from './models';
-import {MessagesService, ThreadsService,
-        UserService} from './services/services';
+import {MessagesService, ThreadsService, UserService} from './services/services';
 import * as moment from 'moment';
+
+import {WeatherService} from './services/WeatherService';
 
 // the person using the app us Juliet
 let me: User      = new User('Juliet', require('images/avatars/female-avatar-1.png'));
@@ -11,12 +12,15 @@ let echo: User    = new User('Echo Bot', require('images/avatars/male-avatar-1.p
 let rev: User     = new User('Reverse Bot', require('images/avatars/female-avatar-4.png'));
 let wait: User    = new User('Waiting Bot', require('images/avatars/male-avatar-2.png'));
 let capslock:User = new User('Caps Lock Bot',require('images/avatars/male-avatar-3.png'));
+let searchweather:User =new User('Weather Search Bot',require('images/avatars/female-avatar-3.png'));
 
 let tLadycap: Thread = new Thread('tLadycap', ladycap.name, ladycap.avatarSrc);
 let tEcho: Thread    = new Thread('tEcho', echo.name, echo.avatarSrc);
 let tRev: Thread     = new Thread('tRev', rev.name, rev.avatarSrc);
 let tWait: Thread    = new Thread('tWait', wait.name, wait.avatarSrc);
 let tcapslock:Thread = new Thread('tcapslock',capslock.name,capslock.avatarSrc);
+let tsearchweather:Thread = new Thread('tsearchweather',searchweather.name, searchweather.avatarSrc);
+
 
 let initialMessages: Array<Message> = [
   new Message({
@@ -54,13 +58,20 @@ let initialMessages: Array<Message> = [
         sentAt:moment().subtract(3, 'minutes').toDate(),
         text:`I\'ll caps lock whatever you send me`,
         thread:tcapslock
+    }),
+    new Message({
+        author:searchweather,
+        sentAt:moment().subtract(5, 'minutes').toDate(),
+        text:`I\'ll search for you the weather of the city you are looking for`,
+        thread:searchweather
     })
 ];
 
 export class ChatExampleData {
   static init(messagesService: MessagesService,
               threadsService: ThreadsService,
-              userService: UserService): void {
+              userService: UserService,
+              weatherService: WeatherService): void {
 
     // TODO make `messages` hot
     messagesService.messages.subscribe(() => ({}));
@@ -73,10 +84,11 @@ export class ChatExampleData {
 
     threadsService.setCurrentThread(tEcho);
 
-    this.setupBots(messagesService);
+    this.setupBots(messagesService, weatherService);
   }
 
-  static setupBots(messagesService: MessagesService): void {
+  static setupBots(messagesService: MessagesService,
+                   weatherService: WeatherService): void {
 
     // echo bot
     messagesService.messagesForThreadUser(tEcho, echo)
@@ -118,6 +130,33 @@ export class ChatExampleData {
               },
               null);
 
+      //weather search bot
+      messagesService.messagesForThreadUser(tcapslock, capslock)
+          .forEach( (message: Message): void => {
+              weatherService.getWeather(message.text.toString())
+                  .then(function (value) {
+                      messagesService.addMessage(
+                          new Message({
+                              author: searchweather,
+                              text: value,
+                              thread: tsearchweather
+                          })
+                      );
+                  })
+                  .catch(function (e) {
+                      messagesService.addMessage(
+                          new Message({
+                              author: searchweather,
+                              text: 'Not display able to display weather for your request',
+                              thread: tsearchweather
+                          })
+                      );
+                  })
+          },
+              null);
+
+
+
     // waiting bot
     messagesService.messagesForThreadUser(tWait, wait)
       .forEach( (message: Message): void => {
@@ -131,7 +170,6 @@ export class ChatExampleData {
         } else {
           reply = `I waited ${waitTime} seconds to send you this.`;
         }
-
 
 
         setTimeout(
