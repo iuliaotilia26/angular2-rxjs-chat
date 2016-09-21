@@ -51,6 +51,12 @@ import {ChatExampleData} from './ChatExampleData';
  */
 require('../css/styles.scss');
 
+import { HttpModule } from '@angular/http';
+
+import { InMemoryWebApiModule } from 'angular2-in-memory-web-api';
+import {WeatherService} from "./services/WeatherService";
+import {MovieService} from "./services/MovieService";
+
 @Component({
   selector: 'chat-app',
   template: `
@@ -66,8 +72,12 @@ require('../css/styles.scss');
 class ChatApp {
   constructor(public messagesService: MessagesService,
               public threadsService: ThreadsService,
-              public userService: UserService) {
-    ChatExampleData.init(messagesService, threadsService, userService);
+              public userService: UserService,
+              public weatherService: WeatherService,
+              public movieService: MovieService
+              )
+  {
+    ChatExampleData.init(messagesService, threadsService, userService, weatherService, movieService);
   }
 }
 
@@ -79,11 +89,15 @@ class ChatApp {
     ChatThread,
     ChatWindow,
     ChatMessage,
-    utilInjectables
+    utilInjectables,
+
+
   ],
   imports: [
     BrowserModule,
-    FormsModule
+    FormsModule,
+    HttpModule,
+
   ],
   bootstrap: [ ChatApp ],
   providers: [ servicesInjectables ]
